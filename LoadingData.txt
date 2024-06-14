@@ -1,0 +1,131 @@
+KINDERGARTEN DIMENSION:
+
+CREATE TABLE kindergarten_temp (
+kindergarten_ID INT,
+no_student_attending_category STRING,
+street_address STRUCT<street_number: INT, street_name: STRING, city: STRING>,
+country STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/andb24/kindergarten.txt' INTO TABLE
+kindergarten_temp;
+
+INSERT OVERWRITE TABLE kindergarten PARTITION(country='Poland')
+SELECT kindergarten_id,no_student_attending_category,street_address FROM kindergarten_temp where country='Poland';
+
+INSERT OVERWRITE TABLE kindergarten PARTITION(country='Sweden')
+SELECT kindergarten_id,no_student_attending_category,street_address FROM kindergarten_temp where country='Sweden';
+
+DROP TABLE kindergarten_temp;
+
+DATE DIMENSION:
+
+CREATE TABLE date_dim_temp (
+date_id INT,
+ddate DATE,
+year INT,
+month STRING,
+weekday STRING,
+monthNo INT,
+weekdayNo INT,
+season STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/andb24/date.txt' INTO TABLE
+date_dim_temp;
+
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+INSERT OVERWRITE TABLE date_dim PARTITION(season)
+SELECT * FROM date_dim_temp;
+
+DROP TABLE date_dim_temp;
+
+MEAL DIMENSION:
+
+CREATE TABLE meal_temp (
+meal_id INT,
+courses STRUCT<First: STRING, Second: STRING>,
+additional_info MAP<STRING, STRING>)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+MAP KEYS TERMINATED BY ':'
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/andb24/meal.txt' INTO TABLE
+meal_temp;
+
+INSERT OVERWRITE TABLE meal
+SELECT * FROM meal_temp;
+
+DROP TABLE meal_temp;
+
+MEAL_SERVING FACT:
+
+CREATE TABLE meal_serving_temp (
+meal_serving_id INT,
+meal_id INT,
+date_id INT,
+kindergarten_id INT,
+amount_food_wasted DOUBLE,
+amount_money_invested DOUBLE,
+amount_food_bought DOUBLE)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/andb24/meal_serving.txt' INTO TABLE
+meal_serving_temp;
+
+INSERT OVERWRITE TABLE meal_serving
+SELECT * FROM meal_serving_temp;
+
+DROP TABLE meal_serving_temp;
+
+STUDENT DIMENSION:
+
+CREATE TABLE student_temp (
+student_id INT,
+pesel BIGINT,
+is_current BOOLEAN,
+name_and_surname STRUCT<Name: STRING, Surname: STRING>,
+age_category STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/andb24/student.txt' INTO TABLE
+student_temp;
+
+INSERT OVERWRITE TABLE student
+SELECT * FROM student_temp;
+
+DROP TABLE student_temp;
+
+EATING FACT:
+
+CREATE TABLE eating_temp (
+meal_serving_id INT,
+student_id INT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/andb24/eating.txt' INTO TABLE
+eating_temp;
+
+INSERT OVERWRITE TABLE eating
+SELECT * FROM eating_temp;
+
+DROP TABLE eating_temp;
+

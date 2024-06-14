@@ -1,0 +1,5 @@
+1|less than 20|1,Main St,Malmo|Sweden
+2|from 20 to 50|2,Oak St,Stockholm|Sweden
+3|from 50 to 100|3,Maple St,Lublin|Poland
+4|from 100 to 150|4,Pine St,Gdansk|Poland
+5|from 150 to 200|5,Cedar St,Warsaw|Poland

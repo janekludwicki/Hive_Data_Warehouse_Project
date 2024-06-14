@@ -1,0 +1,85 @@
+1.Retrieve the total amount of money invested in meals for each kindergarten in the year 2023.
+
+SELECT kindergarten_id, SUM(amount_money_invested) AS total_money_invested
+FROM meal_serving 
+WHERE date_id IN (SELECT date_id FROM date_dim WHERE year = 2023) 
+GROUP BY kindergarten_id;
+
+2.List the top 3 kindergartens with the highest average food wastage per meal.
+
+SELECT kindergarten_id, AVG(amount_food_wasted) AS avg_food_wasted
+FROM meal_serving
+GROUP BY kindergarten_id
+ORDER BY avg_food_wasted DESC
+LIMIT 3;
+
+3.Retrieve the names and addresses of kindergartens in Poland.
+
+SELECT kindergarten_ID, street_address
+FROM kindergarten
+WHERE country = 'Poland';
+
+4.Find the total number of meals served on each day of the week during the Summer season.
+
+SELECT weekday, COUNT(meal_serving_id)
+FROM date_dim
+JOIN meal_serving ON date_dim.date_id = meal_serving.date_id
+WHERE season = 'Summer'
+GROUP BY weekday;
+
+5.Retrieve the meals with their respective calorie content and protein amounts, filtering for meals with more than 25 grams of protein.
+
+SELECT
+  meal_id,
+  courses.First AS main_course,
+  courses.Second AS side_course,
+  additional_info['calories'] AS calorie_content,
+  additional_info['protein'] AS protein_amount
+FROM meal
+WHERE CAST(additional_info['protein'] AS INT) > 25;
+
+6.Retrieve the age category with the highest number of current students.
+
+SELECT age_category, COUNT(student_id) AS student_count
+FROM student
+WHERE is_current = TRUE
+GROUP BY age_category
+ORDER BY student_count DESC
+LIMIT 1;
+
+7.Calculate the average amount of food bought per month for each kindergarten.
+
+SELECT kindergarten_id, month, AVG(amount_food_bought) AS avg_food_bought
+FROM meal_serving
+JOIN date_dim ON meal_serving.date_id = date_dim.date_id
+GROUP BY kindergarten_id, date_dim.month;
+
+8.Find the total number of meals served in each season
+
+SELECT season, COUNT(meal_serving_id) AS meals_served
+FROM date_dim
+JOIN meal_serving ON date_dim.date_id = meal_serving.date_id
+GROUP BY season;
+
+9.Find the total amount of money invested in meals for each age category of students.
+
+SELECT s.age_category, SUM(ms.amount_money_invested) AS total_investment
+FROM meal_serving ms
+JOIN eating e ON ms.meal_serving_id = e.meal_serving_id
+JOIN student s ON e.student_id = s.student_id
+GROUP BY s.age_category;
+
+10.Retrieve information about students who attended meals, including their names, the date of the meal, and the amount of food wasted for each meal.
+
+SELECT
+  e.meal_serving_id,
+  s.student_id,
+  s.name_and_surname.Name AS student_name,
+  s.name_and_surname.Surname AS student_surname,
+  d.date_id,
+  d.ddate AS meal_date,
+  ms.amount_food_wasted
+FROM eating e
+JOIN student s ON e.student_id = s.student_id
+JOIN meal_serving ms ON e.meal_serving_id = ms.meal_serving_id
+JOIN date_dim d ON ms.date_id = d.date_id;

@@ -1,0 +1,66 @@
+CREATE TABLE meal_serving (
+meal_serving_id INT,
+meal_id INT,
+date_id INT,
+kindergarten_id INT,
+amount_food_wasted DOUBLE,
+amount_money_invested DOUBLE,
+amount_food_bought DOUBLE)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+STORED AS ORC;
+
+CREATE TABLE meal (
+meal_id INT,
+courses STRUCT<First: STRING, Second: STRING>,
+additional_info MAP<STRING, STRING>)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+MAP KEYS TERMINATED BY ':'
+STORED AS PARQUET;
+
+CREATE EXTERNAL TABLE date_dim (
+date_id INT,
+ddate DATE,
+year INT,
+month STRING,
+weekday STRING,
+month_no INT,
+weekday_no INT)
+PARTITIONED BY (season STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+STORED AS TEXTFILE
+LOCATION 'hdfs:///user/andb24/database';
+
+CREATE TABLE kindergarten (
+kindergarten_ID INT,
+no_student_attending_category STRING,
+street_address STRUCT<street_number: INT, street_name: STRING, city: STRING>)
+PARTITIONED BY (country STRING) 
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+STORED AS PARQUET;
+
+CREATE TABLE eating (
+meal_serving_id INT,
+student_id INT)
+CLUSTERED BY (meal_serving) INTO 4 BUCKETS 
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+STORED AS ORC;
+
+CREATE TABLE student (
+student_id INT,
+pesel BIGINT,
+is_current BOOLEAN,
+name_and_surname STRUCT<Name: STRING, Surname: STRING>)
+PARTITIONED BY (age_category STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+COLLECTION ITEMS TERMINATED BY ','
+STORED AS ORC;
